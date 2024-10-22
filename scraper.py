@@ -1,5 +1,6 @@
 import re
 from urllib.parse import urlparse
+# Import beautiful soup to parse for extracting
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
