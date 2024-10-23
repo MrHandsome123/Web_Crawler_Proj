@@ -10,8 +10,6 @@ def scraper(url, resp):
     Need to check for:
         traps/infinite loops
         Possibly filter in the extract next links
-        Maybe shorten links in extract next link
-        
 '''
 def extract_next_links(url, resp):
     # Implementation required.
@@ -59,6 +57,11 @@ def is_valid(url):
                     + r"|informatics.uci.edu"
                     + r"|stat.uci.edu", parsed.netloc)
             or re.match(r"today.uci.edu/department/information_computer_sciences", parsed.netloc)):
+
+            if (re.search(r"&eventDate="
+                        + r"|&ical=", parsed.netloc)):
+                return False
+
             return not re.match(
                 r".*\.(css|js|bmp|gif|jpe?g|ico"
                 + r"|png|tiff?|mid|mp2|mp3|mp4"
