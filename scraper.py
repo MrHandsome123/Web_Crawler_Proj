@@ -16,7 +16,8 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-
+    if resp.status != 200 or resp.raw_response.content == "":
+        return ""
     soup = BeautifulSoup(resp.raw_response.content, "lxml")
     #for link in soup.find_all('a'):
     #    print(link.get('href'))
@@ -27,6 +28,14 @@ def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
+
+    '''
+    Need to check for:
+        traps/infinite loops
+        Possibly filter in the extract next links
+        Maybe shorten links in extract next link
+        
+    '''
     try:
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
