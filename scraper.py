@@ -15,6 +15,10 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
+    if not resp.status == 200:
+        print(f"The following url {resp.url} had error code {resp.error}.\nReached via url: {url}")
+        return list()
+    urls = set()
     return list()
 
 def is_valid(url):
