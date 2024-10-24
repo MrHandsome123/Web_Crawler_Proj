@@ -33,6 +33,18 @@ def is_valid(url):
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
+        ics_domains = [
+            r".*\.ics\.uci\.edu",
+            r".*\.cs\.uci\.edu",
+            r".*\.informatics\.uci\.edu",
+            r".*\.stat\.uci\.edu",
+            r"today\.uci\.edu/department/information_computer_sciences"
+        ]
+        domain_match = any(re.match(domain, parsed.netloc) for domain in ics_domains)
+
+        if not domain_match:
+            return False
+        
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
