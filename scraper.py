@@ -22,7 +22,10 @@ def extract_next_links(url, resp):
     urls = set()
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
     for link in soup.find_all('a'):
-        urls.add(str(link.get('href')))
+        url = link.get('href')
+        parsed = urlparse(url)
+        removed_fragment = urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, parsed.query, ''))
+        urls.add(removed_fragment)
     return list(urls)
 
 def is_valid(url):
@@ -41,9 +44,9 @@ def is_valid(url):
             r"today\.uci\.edu/department/information_computer_sciences"
         ]
         domain_match = any(re.match(domain, parsed.netloc) for domain in ics_domains)
-
         if not domain_match:
             return False
+        
         if re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -52,8 +55,22 @@ def is_valid(url):
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower()):
+            + r"|rm|smil|wmv|swf|wma|zip|rar|gz|heic)$", parsed.path.lower()):
             return False
+
+        action_urls = [
+            r"action=download&upname=",
+            r"action=upload&upname=",
+            r"action=login",
+            r"action=edit",
+            r"action=refcount",
+            r"action=crypt",
+            r"action=search&q"
+        ]
+        action_match = any(re.search(action, parsed.query) for action in action_urls)
+        if action_match:
+            return False
+
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -62,7 +79,7 @@ def is_valid(url):
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.query.lower())
+            + r"|rm|smil|wmv|swf|wma|zip|rar|gz|heic)$", parsed.query.lower())
 
     except TypeError:
         print ("TypeError for ", parsed)
