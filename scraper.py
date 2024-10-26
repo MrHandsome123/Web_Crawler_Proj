@@ -1,7 +1,8 @@
 import re
 from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
-
+from utils.store_url import store_url
+from utils.is_valid_checks import infinite_trap, is_large_file
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     return [link for link in links if is_valid(link)]
@@ -16,10 +17,12 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    if not resp.status == 200:
+    if not resp.status == 200 or infinite_trap(resp) or is_large_file(resp):
         print(f"The following actual url {resp.url} had error code {resp.error}.\nReached via url: {url}")
         return list()
-    print(f"resp.raw_response.url: {resp.raw_response.url}\nreps.raw_response_content: {resp.raw_response.content}\n")
+    # Store current url and resp if it is valid (status 200)
+    store_url(url, resp)
+
     urls = set()
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
     for link in soup.find_all('a'):
@@ -81,7 +84,7 @@ def is_valid(url):
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz|heic)$", parsed.query.lower())
-
+        
     except TypeError:
         print ("TypeError for ", parsed)
         raise
