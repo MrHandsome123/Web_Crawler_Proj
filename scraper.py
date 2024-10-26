@@ -1,7 +1,7 @@
 import re
 from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
-from utils.store_url import store_url
+from utils.store_url import store_url_content
 from utils.is_valid_checks import infinite_trap, is_large_file
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -21,7 +21,7 @@ def extract_next_links(url, resp):
         print(f"The following actual url {resp.url} had error code {resp.error}.\nReached via url: {url}")
         return list()
     # Store current url and resp if it is valid (status 200)
-    store_url(url, resp)
+    store_url_content(url, resp)
 
     urls = set()
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
