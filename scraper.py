@@ -69,7 +69,17 @@ def is_valid(url):
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
     try:
-        if bool(re.search(r"/\d{4}/\d{1,2}/\d{1,2}/", url)):
+
+        if parsed.query:
+            return False
+
+        date = re.compile(
+        r"/\d{4}[-/]\d{2}[-/]\d{2}/|"
+        r"/\d{2}[-/]\d{2}[-/]\d{4}/|"
+        r"/\d{4}[-/]\d{2}/|"
+        r"/\d{2}[-/]\d{4}/"
+        )
+        if bool(date.search(url)):
             return False
         
         page_match = re.search(r"(?:(?:\?|&)page=|/page/)(\d+)", url)
