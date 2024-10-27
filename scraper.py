@@ -16,16 +16,30 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
+    if resp.status != 200 or resp.error == 404:
+        return list()
+    
+    # print(resp.status)
+    # print(resp.error)
+
+
     result = []
     allowed_domains = ["ics.uci.edu","cs.uci.edu","informatics.uci.edu","stat.uci.edu","today.uci.edu/department/information_computer_sciences"]
 
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
-    hyperlinks = [a['href'] for a in soup.find_all('a', href=True)]
 
+    #check if it has "high information value", we may not use it. Just some hardcode heuristics. 
+    if len(soup.get_text(separator=" ", strip=True)) < 200:
+        return list()
+    
+    hyperlinks = [a['href'] for a in soup.find_all('a', href=True)]
+    
+    link_file = open('./Logs/Links_file', 'a')
+    
     for link in hyperlinks:
         if not link.startswith('http'):
             continue
-        parsed = urlparse(urljoin(url, link))._replace(fragment="")
+        parsed = urlparse(urljoin(resp.url, link))._replace(fragment="")
 
         domain = parsed.netloc
         path = parsed.path
@@ -33,11 +47,14 @@ def extract_next_links(url, resp):
         if any(domain.endswith(allowed) and path.startswith('/') for allowed in allowed_domains):
             good_link = urlunparse(parsed)
             result.append(good_link)
-            print(good_link)
+            # print(good_link)
+            link_file.write(f'{good_link}\n')
+    
+    link_file.close()
 
         
 
-    return list()
+    return result
 
 
 def is_valid(url):
