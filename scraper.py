@@ -41,6 +41,13 @@ def extract_next_links(url, resp):
             continue
         parsed = urlparse(urljoin(resp.url, link))._replace(fragment="")
 
+        query = "&".join(
+            param for param in parsed.query.split("&")
+            if not re.search(r"(session|track|ref|utm|fbclid|gclid|mc_eid|mc_cid)", param)
+        )
+
+        parsed._replace(query=query)
+
         domain = parsed.netloc
         path = parsed.path
 
@@ -62,9 +69,19 @@ def is_valid(url):
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
     try:
+        if bool(re.search(r"/\d{4}/\d{1,2}/\d{1,2}/", url)):
+            return False
+        
+        page_match = re.search(r"(?:(?:\?|&)page=|/page/)(\d+)", url)
+        if page_match:
+            page_num = int(page_match.group(1))
+            if page_num > 10:
+                return False
+            
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
+
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
