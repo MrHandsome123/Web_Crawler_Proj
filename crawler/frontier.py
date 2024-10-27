@@ -49,7 +49,10 @@ class Frontier(object):
 
     def get_tbd_url(self):
         try:
-            return self.to_be_downloaded.pop()
+            url_never_seen = self.to_be_downloaded.pop()
+            while self.save[get_urlhash(normalize(url_never_seen))] == (url_never_seen, True):
+                url_never_seen = self.to_be_downloaded.pop()
+            return url_never_seen
         except IndexError:
             return None
 

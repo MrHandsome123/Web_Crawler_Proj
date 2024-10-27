@@ -16,7 +16,12 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    if resp.status != 200 or resp.error == 404:
+    error_phrases = [
+        "page not found", "404 error", "not available", "no longer exists", 
+        "we couldn't find", "this page may have been removed"
+    ]
+
+    if resp.status != 200 or any(resp.error == error_phrase for error_phrase in error_phrases):
         return list()
     
     # print(resp.status)
@@ -69,6 +74,7 @@ def is_valid(url):
     # If you decide to crawl it, return True; otherwise return False.
     # There are already some conditions that return False.
     try:
+        parsed = urlparse(url)
 
         if parsed.query:
             return False
@@ -88,7 +94,7 @@ def is_valid(url):
             if page_num > 10:
                 return False
             
-        parsed = urlparse(url)
+
         if parsed.scheme not in set(["http", "https"]):
             return False
 
