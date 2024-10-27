@@ -1,8 +1,13 @@
 import re
 from urllib.parse import urlparse
+from spacetime import Node
+
+
+all_urls = []
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
+    all_urls.append(url)
     return [link for link in links if is_valid(link)]
 
 def extract_next_links(url, resp):
@@ -15,7 +20,31 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    return list()
+
+    # Check if the response is valid
+    if resp.status != 200:
+        return []
+    
+    if resp.raw_response is None or resp.raw_response.content is None:
+        return []
+    
+    # Decode the content of the response
+    content = resp.raw_response.content.decode("utf-8", errors="ignore")
+
+
+    # Extract all links using a regular expression to find href attributes
+    extracted_links = re.findall(r'href=[\'"]?([^\'" >]+)', content)
+
+    # Filter out the links that are not valid
+    valid_links = []
+    for link in extracted_links:
+        if is_valid(link):
+            valid_links.append(link)
+        
+    return valid_links
+
+
+
 
 def is_valid(url):
     # Decide whether to crawl this url or not. 
@@ -25,6 +54,13 @@ def is_valid(url):
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
+        
+         # Only allow URLs within the ics.uci.edu domain
+        if not re.match(r".*\.(ics\.uci\.edu|cs\.uci\.edu|informatics\.uci\.edu|stat\.uci\.edu)", parsed.netloc):
+            return False
+
+        if parsed.netloc == "today.uci.edu" and parsed.path.startswith("/department/information_computer_sciences/"):
+            return True
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -38,3 +74,27 @@ def is_valid(url):
     except TypeError:
         print ("TypeError for ", parsed)
         raise
+
+
+
+def calculate_unique_urls(urls):
+    unique_set = set()
+    for url in urls:
+        # Removing fragments
+        normalized_url, _ = urldefrag(url)
+        unique_set.add(normalized_url)
+        unique_list = list(unique_set)
+
+    try:
+        with open(json_file_path, "r") as f:
+            existing_data = json.load(f)
+    except FileNotFoundError:
+        existing_data = []
+    all_urls = list(set(existing_data + unique_list))
+
+    with open(json_file_path, "w") as f:
+        json.dump(all_urls, f, indent=4)
+    
+    print(f"Saved {len(all_urls)} unique URLs to {json_file_path}")
+
+
