@@ -21,7 +21,7 @@ def extract_next_links(url, resp):
         print(f"The following actual url {resp.url} had error code {resp.error}.\nReached via url: {url}")
         return list()
     # Store current url and resp if it is valid (status 200)
-    store_url_content(url, resp)
+    store_url_content(resp)
 
     urls = set()
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
