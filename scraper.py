@@ -1,5 +1,5 @@
 import re
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse, urljoin, urlunparse
 from bs4 import BeautifulSoup
 
 def scraper(url, resp):
@@ -17,6 +17,7 @@ def extract_next_links(url, resp):
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
     result = []
+    allowed_domains = ["ics.uci.edu","cs.uci.edu","informatics.uci.edu","stat.uci.edu","today.uci.edu/department/information_computer_sciences"]
 
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
     hyperlinks = [a['href'] for a in soup.find_all('a', href=True)]
@@ -24,10 +25,19 @@ def extract_next_links(url, resp):
     for link in hyperlinks:
         if not link.startswith('http'):
             continue
-        result.append(urljoin(url, link))
+        parsed = urlparse(urljoin(url, link))._replace(fragment="")
+
+        domain = parsed.netloc
+        path = parsed.path
+
+        if any(domain.endswith(allowed) and path.startswith('/') for allowed in allowed_domains):
+            good_link = urlunparse(parsed)
+            result.append(good_link)
+            print(good_link)
+
         
 
-    return result
+    return list()
 
 
 def is_valid(url):
