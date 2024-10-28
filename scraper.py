@@ -45,12 +45,6 @@ def extract_next_links(url, resp):
             continue
         parsed = urlparse(urljoin(resp.url, link))._replace(fragment="")
 
-        query = "&".join(
-            param for param in parsed.query.split("&")
-            if not re.search(r"(session|track|ref|utm|fbclid|gclid|mc_eid|mc_cid)", param)
-        )
-
-        parsed._replace(query=query)
 
         domain = parsed.netloc
         path = parsed.path
@@ -78,7 +72,7 @@ def is_valid(url):
 
         parsed = urlparse(url)
 
-        if parsed.query and "action" in parsed.query:
+        if parsed.query and re.search(r"(session|track|ref|utm|fbclid|gclid|mc_eid|mc_cid)", parsed.query):
             return False
 
         date = re.compile(
