@@ -39,7 +39,6 @@ def extract_next_links(url, resp):
     
     hyperlinks = [a['href'] for a in soup.find_all('a', href=True)]
     
-    link_file = open('./Logs/Links_file', 'a')
     
     for link in hyperlinks:
         if not link.startswith('http'):
@@ -60,9 +59,8 @@ def extract_next_links(url, resp):
             good_link = urlunparse(parsed)
             result.append(good_link)
             # print(good_link)
-            link_file.write(f'{good_link}\n')
-    
-    link_file.close()
+
+
 
         
 
