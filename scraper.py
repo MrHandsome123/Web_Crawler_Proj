@@ -43,7 +43,7 @@ def extract_next_links(url, resp):
     for link in hyperlinks:
         if not link.startswith('http'):
             continue
-        parsed = urlparse(urljoin(resp.url, link))._replace(fragment="")
+        parsed = urlparse(urljoin(resp.url, link))
 
 
         domain = parsed.netloc
@@ -72,14 +72,14 @@ def is_valid(url):
 
         parsed = urlparse(url)
 
-        if parsed.query and re.search(r"(session|track|ref|utm|fbclid|gclid|mc_eid|mc_cid)", parsed.query):
+        if parsed.query and re.search(r"(date|ical|session|track|ref|utm|fbclid|gclid|mc_eid|mc_cid)", parsed.query.lower()):
             return False
 
         date = re.compile(
-        r"/\d{4}[-/]\d{2}[-/]\d{2}/|"
-        r"/\d{2}[-/]\d{2}[-/]\d{4}/|"
-        r"/\d{4}[-/]\d{2}/|"
-        r"/\d{2}[-/]\d{4}/"
+            r"\b\d{4}[-/]\d{2}[-/]\d{2}\b|"
+            r"\b\d{2}[-/]\d{2}[-/]\d{4}\b|"
+            r"\b\d{4}[-/]\d{2}\b|"
+            r"\b\d{2}[-/]\d{4}\b"
         )
         if bool(date.search(url)):
             return False
