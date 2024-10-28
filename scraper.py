@@ -72,7 +72,7 @@ def is_valid(url):
 
         parsed = urlparse(url)
 
-        if parsed.query and re.search(r"(date|ical|session|track|ref|utm|fbclid|gclid|mc_eid|mc_cid)", parsed.query.lower()):
+        if parsed.query and re.search(r"(date|ical|action|session|track|ref|utm|fbclid|gclid|mc_eid|mc_cid)", parsed.query.lower()):
             return False
 
         date = re.compile(
