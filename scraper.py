@@ -29,27 +29,35 @@ def extract_next_links(url, resp):
 
 
     result = []
-    allowed_domains = [".ics.uci.edu",".cs.uci.edu",".informatics.uci.edu",".stat.uci.edu",".today.uci.edu/department/information_computer_sciences"]
+    allowed_domains = [".ics.uci.edu",".cs.uci.edu",".informatics.uci.edu",".stat.uci.edu"]
 
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
 
     #check if it has "high information value", we may not use it. Just some hardcode heuristics. 
     if len(soup.get_text(separator=" ", strip=True)) < 200:
         return list()
+
+    forms = soup.find_all("form")
+
+    for form in forms:
+        if any(
+            input_tag.get("type") == "password" or
+            input_tag.get("name") in ["username", "email", "password", "login"]
+            for input_tag in form.find_all("input")):
+            return list()
     
     hyperlinks = [a['href'] for a in soup.find_all('a', href=True)]
-    
-    
+
     for link in hyperlinks:
         if not link.startswith('http'):
             continue
-        # parsed = urlparse(urljoin(resp.url, link))._replace(fragment="")
+        # parsed = urlparse(urljoin(url, link))._replace(fragment="")
         parsed = urlparse(link)._replace(fragment="")
 
         domain = parsed.netloc
         path = parsed.path
 
-        if any(domain.endswith(allowed) and path.startswith('/') for allowed in allowed_domains):
+        if any(domain.endswith(allowed) for allowed in allowed_domains) or (domain == "today.uci.edu" and path.startswith("/department/information_computer_sciences")):
             good_link = urlunparse(parsed)
             result.append(good_link)
             # print(good_link)
@@ -72,10 +80,13 @@ def is_valid(url):
 
         parsed = urlparse(url)
 
-        if parsed.query and re.search(r"(date|ical|action|session|track|ref|utm|fbclid|gclid|mc_eid|mc_cid)", parsed.query.lower()):
-            return False
+        # if parsed.query and re.search(r"(date|ical|action|session|track|ref|utm|fbclid|gclid|mc_eid|mc_cid)", parsed.query.lower()):
+        #     return False
         
-        if re.search(r"(/pdf/|login|/month|/map|/uploads/)", parsed.path.lower()):
+        if parsed.query and re.search(r"(date|ical|action|filter)", parsed.query.lower()):
+            return False
+
+        if re.search(r"(/pdf/|login|/month|/uploads/|facebook|twitter)", url.lower()):
             return False
 
         date = re.compile(
@@ -90,7 +101,7 @@ def is_valid(url):
         page_match = re.search(r"(?:(?:\?|&)page=|/page/)(\d+)", url)
         if page_match:
             page_num = int(page_match.group(1))
-            if page_num > 5:
+            if page_num > 10:
                 return False
             
 
@@ -100,7 +111,7 @@ def is_valid(url):
         return not re.search(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
-            + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|ppsx"
+            + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|ppsx|bib"
             + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
