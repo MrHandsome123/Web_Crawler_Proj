@@ -43,8 +43,8 @@ def extract_next_links(url, resp):
     for link in hyperlinks:
         if not link.startswith('http'):
             continue
-        parsed = urlparse(urljoin(resp.url, link))
-
+        # parsed = urlparse(urljoin(resp.url, link))._replace(fragment="")
+        parsed = urlparse(link)._replace(fragment="")
 
         domain = parsed.netloc
         path = parsed.path
@@ -90,7 +90,7 @@ def is_valid(url):
         page_match = re.search(r"(?:(?:\?|&)page=|/page/)(\d+)", url)
         if page_match:
             page_num = int(page_match.group(1))
-            if page_num > 10:
+            if page_num > 5:
                 return False
             
 
@@ -100,7 +100,7 @@ def is_valid(url):
         return not re.search(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
-            + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
+            + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|ppsx"
             + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
