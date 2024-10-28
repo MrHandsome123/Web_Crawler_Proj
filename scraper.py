@@ -29,7 +29,7 @@ def extract_next_links(url, resp):
 
 
     result = []
-    allowed_domains = ["ics.uci.edu","cs.uci.edu","informatics.uci.edu","stat.uci.edu","today.uci.edu/department/information_computer_sciences"]
+    allowed_domains = [".ics.uci.edu",".cs.uci.edu",".informatics.uci.edu",".stat.uci.edu",".today.uci.edu/department/information_computer_sciences"]
 
     soup = BeautifulSoup(resp.raw_response.content, 'html.parser')
 
@@ -73,6 +73,9 @@ def is_valid(url):
         parsed = urlparse(url)
 
         if parsed.query and re.search(r"(date|ical|action|session|track|ref|utm|fbclid|gclid|mc_eid|mc_cid)", parsed.query.lower()):
+            return False
+        
+        if re.search(r"(/pdf/|login|/month|/map|/uploads/)", parsed.path.lower()):
             return False
 
         date = re.compile(
