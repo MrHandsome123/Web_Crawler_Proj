@@ -21,7 +21,7 @@ def extract_next_links(url, resp):
         try:
             content = BeautifulSoup(resp.raw_response.content)
             links = [link.get('href') for link in content.find_all('a') if link.get('href') is not None and is_valid(link.get('href'))]
-        except exception:
+        except Exception as e:
             print ("{e}")
     return links
 
@@ -33,6 +33,10 @@ def is_valid(url):
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
+        allowed_domains = ["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu", "today.uci.edudepartment/information_computer_sciences/"]
+        if not any(domain in parsed.netloc for domain in allowed_domains):
+            return False
+
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
