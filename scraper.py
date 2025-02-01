@@ -17,9 +17,12 @@ def extract_next_links(url, resp):
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
     links = []
-    try:
-        if resp.staus == 200:
-
+    if resp.status == 200:
+        try:
+            content = BeautifulSoup(resp.raw_response.content)
+            links = [link.get('href') for link in content.find_all('a') if link.get('href') is not None and is_valid(link.get('href'))]
+        except exception:
+            print ("{e}")
     return links
 
 def is_valid(url):
@@ -43,6 +46,3 @@ def is_valid(url):
     except TypeError:
         print ("TypeError for ", parsed)
         raise
-
-
-#Test-zsy 2
