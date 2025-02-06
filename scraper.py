@@ -22,7 +22,7 @@ def extract_next_links(url, resp):
             content = BeautifulSoup(resp.raw_response.content)
             links = [link.get('href') for link in content.find_all('a') if link.get('href') is not None and is_valid(link.get('href'))]
         except Exception as e:
-            print ("{e}")
+            print ("An exception found: {e}")
     return links
 
 def is_valid(url):

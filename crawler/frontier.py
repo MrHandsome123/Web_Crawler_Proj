@@ -6,6 +6,7 @@ from queue import Queue, Empty
 
 from utils import get_logger, get_urlhash, normalize
 from scraper import is_valid
+from urllib import urlparse, urlunparse
 
 class Frontier(object):
     def __init__(self, config, restart):
@@ -52,10 +53,18 @@ class Frontier(object):
             return self.to_be_downloaded.pop()
         except IndexError:
             return None
+        
+    @staticmethod
+    def remove_all_query_params(url):
+        #remove all query params
+        parsed = urlparse(url)
+        cleaned_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
+        
+        return cleaned_url
 
     def add_url(self, url):
         url = normalize(url)
-        url = remove_all_query_params(url) 
+        url = Frontier.remove_all_query_params(url) 
         urlhash = get_urlhash(url)
         if urlhash not in self.save:
             self.save[urlhash] = (url, False)
@@ -71,11 +80,3 @@ class Frontier(object):
 
         self.save[urlhash] = (url, True)
         self.save.sync()
-
-    @staticmethod
-    def remove_all_query_params(url):
-        #remove all query params
-        parsed = urlparse(url)
-        cleaned_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
-        
-        return cleaned_url
