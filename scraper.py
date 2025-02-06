@@ -46,7 +46,25 @@ def is_valid(url):
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+        
+        
+        pattern = r"(\d{4})[-/](\d{2})[-/](\d{2})"
+        match = re.search(pattern, url)
+
+        if match:
+            year, month, day = map(int, match.groups())
+            event_date = datetime(year, month, day)
+            today = datetime.today()
+            
+            # stop exploring upcoming events that happens two weeks later
+            if (event_date - today).days > 14:
+                return False
+
+            # stop exploring events passed more than two weeks
+            if (today - event_date).days > 14:
+                return False
 
     except TypeError:
         print ("TypeError for ", parsed)
         raise
+    

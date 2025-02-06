@@ -6,7 +6,7 @@ from queue import Queue, Empty
 
 from utils import get_logger, get_urlhash, normalize
 from scraper import is_valid
-from urllib import urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse
 
 class Frontier(object):
     def __init__(self, config, restart):
@@ -58,7 +58,7 @@ class Frontier(object):
     def remove_all_query_params(url):
         #remove all query params
         parsed = urlparse(url)
-        cleaned_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
+        cleaned_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path.rstrip('/'), "", "", ""))
         
         return cleaned_url
 
