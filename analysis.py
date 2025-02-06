@@ -65,7 +65,7 @@ def get_subdomain_counts(urls, domain="ics.uci.edu"):
             subdomain = parsed.netloc
             subdomain_counts[subdomain] += 1
 
-    return sorted(subdomain_counts.items())
+    return len(subdomain_counts),sorted(subdomain_counts.items())
 
 if __name__ == "__main__":
     urls = [
