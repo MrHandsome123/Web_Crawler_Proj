@@ -2,7 +2,7 @@ from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
 from collections import Counter,defaultdict
 import re
-from nltk.corpus import stopwords
+# from nltk.corpus import stopwords
 import nltk
 
 
@@ -37,9 +37,19 @@ def get_longest_page(url_content_map):
 
     return longest_page, max_word_count
 
+# def ensure_stopwords():
+#     try:
+#         stopwords.words('english')
+#     except LookupError:
+#         print("Downloading NLTK 'stopwords' resource...")
+#         nltk.download('stopwords')
+#         print("Download complete.")
+
+
 #Question3
-stop_words = set(stopwords.words("english"))
 def get_most_common_words(url_content_map, top_n=50):
+    nltk.download('stopwords')
+    stop_words = set(nltk.stopwords.words("english"))
     word_counter = Counter()
 
     for url,content in url_content_map.items():

@@ -21,6 +21,7 @@ def main(config_file, restart):
     longest_page, max_words = get_longest_page(crawler.url_content_map)
     print(f"Longest page: {longest_page} with {max_words} words")
 
+    # ensure_stopwords()
     most_common_words = get_most_common_words(crawler.url_content_map)
     print("Most common words:")
     for word, count in most_common_words:
