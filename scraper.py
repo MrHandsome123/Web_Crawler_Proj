@@ -4,13 +4,39 @@ from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
 import datetime
 import nltk
+nltk.download('stopwords')
+from nltk.corpus import stopwords
 
 
 unique_pages=set()
-longest_page=None
-longest_page_number=0
+longest_page=[]
+longest_page.append("")
+longest_page_number = 0
+# longest_page_number.append(0)
 word_counts=Counter()
 subdomain_counts=defaultdict(int)
+
+def get_unique_pages():
+    # print(f"Number of unique pages: {len(unique_pages)}")
+    return unique_pages
+
+def get_longest_page():
+    # print(f"Longest page: {longest_page[0]} with {longest_page_number} words")
+    return longest_page, longest_page_number
+
+def get_word_counts():
+    # print("Most common words:")
+    # top_50_words = word_counts.most_common(50)
+    # for word, count in top_50_words:
+    #     print(f"{word}: {count}")
+    return word_counts
+    
+def get_subdomain_counts():
+    # print(f"Subdomain counts: {len(subdomain_counts)}")
+    # sorted_subdomain_counts=sorted(subdomain_counts.items())
+    # for subdomain, count in sorted_subdomain_counts:
+    #     print(f"{subdomain}: {count}")
+    return subdomain_counts
 
 def update_unique_pages(url):
     global unique_pages
@@ -24,26 +50,39 @@ def update_longest_page(url,  content):
     
     words=[]
     try:
-        soup = BeautifulSoup(content, "html.parser")
-        words.extend(re.findall(r'\w+', soup.get_text()))
+        # soup = BeautifulSoup(content, "html.parser")
+        # main_content = content.find("div", class_="content")
+        text = content.get_text(strip=True)
+        # paragraphs = main_content.find_all("p")
+        #article_text = "\n".join(p.get_text(strip=True) for p in paragraphs)
+        # print(f"content: {content}")
+        words.extend(re.findall(r'\w+',text))
         word_count = len(words)
 
         if word_count > longest_page_number:
-            longest_page = url
+            longest_page[0] = url
             longest_page_number = word_count
+            # longest_page.clear
+            # longest_page.append(url)
+        # print(f"Max page number: {longest_page_number}")
     except (UnicodeDecodeError, AttributeError) as e:
         print(f"Skipping URL due to decoding error: {url}")
         
 def update_most_common_words(url, content, top_n=50):
-    nltk.download('stopwords')
-    stop_words = set(nltk.stopwords.words("english"))
+    stop_words = set(stopwords.words("english"))
     global word_counts
 
     try:
-        text = BeautifulSoup(content, "html.parser").get_text().lower()
+        # main_content = content.find("div", class_="content")
+        # paragraphs = main_content.find_all("p")
+        # article_text = "\n".join(p.get_text(strip=True).lower() for p in paragraphs)
+        text = content.get_text(strip=True)
         words = re.findall(r'\w+', text)
-        # filtered_words = [word for word in words if word not in stop_words]
-        word_counts.update(words)
+        filtered_words = [word for word in words if word not in stop_words]
+        word_counts.update(filtered_words)
+        # print(f"The words common:")
+        # for word, count in word_counts.items():
+        #     print(f"{word}: {count}")
     except (UnicodeDecodeError, AttributeError) as e:
         print(f"Skipping URL due to decoding error: {url}")
             
@@ -75,10 +114,14 @@ def extract_next_links(url, resp):
     if resp.status == 200:
         try:
             content = BeautifulSoup(resp.raw_response.content)
-            update_unique_pages(url)
-            update_longest_page(url, content)
-            update_most_common_words(url, content)
-            update_subdomain_counts(url)
+
+            if content is not None:
+                update_unique_pages(url)
+                update_longest_page(url, content)
+                update_most_common_words(url, content)
+                update_subdomain_counts(url)
+            else:
+                print("Warning: BeautifulSoup return None")
             links = [link.get('href') for link in content.find_all('a') if link.get('href') is not None and is_valid(link.get('href'))]
         except Exception as e:
             print (f"An exception found: {e}")
@@ -116,18 +159,9 @@ def is_valid(url):
         raise
 
 def is_recent(url):
-    pattern = r"(\d{4})[-/](\d{2})[-/](\d{2})"
+    pattern = r"(\d{4})[-/](\d{2})"
     match = re.search(pattern, url)
-
     if match:
-        year, month, day = map(int, match.groups())
-        event_date = datetime(year, month, day)
-        today = datetime.today()
-            
-        # stop exploring upcoming events that happens two weeks later
-        if (event_date - today).days > 7:
-            return False
-
-        # stop exploring events passed more than two weeks
-        if (today - event_date).days > 14:
+        year, month = map(int, match.groups())
+        if year != 2025 or month != 2:
             return False
