@@ -55,6 +55,7 @@ class Frontier(object):
 
     def add_url(self, url):
         url = normalize(url)
+        url = remove_all_query_params(url) 
         urlhash = get_urlhash(url)
         if urlhash not in self.save:
             self.save[urlhash] = (url, False)
@@ -70,3 +71,10 @@ class Frontier(object):
 
         self.save[urlhash] = (url, True)
         self.save.sync()
+
+    def remove_all_query_params(url):
+    #remove all query params
+    parsed = urlparse(url)
+    cleaned_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
+    
+    return cleaned_url
