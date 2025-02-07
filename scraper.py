@@ -1,6 +1,61 @@
+from collections import Counter, defaultdict
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 from bs4 import BeautifulSoup
+import datetime
+import nltk
+
+
+unique_pages=set()
+longest_page=None
+longest_page_number=0
+word_counts=Counter()
+subdomain_counts=defaultdict(int)
+
+def update_unique_pages(url):
+    global unique_pages
+    parsed = urlparse(url)
+    cleaned_url = urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', ''))
+    unique_pages.add(cleaned_url)
+
+def update_longest_page(url,  content):
+    global longest_page
+    global longest_page_number
+    
+    words=[]
+    try:
+        soup = BeautifulSoup(content, "html.parser")
+        words.extend(re.findall(r'\w+', soup.get_text()))
+        word_count = len(words)
+
+        if word_count > longest_page_number:
+            longest_page = url
+            longest_page_number = word_count
+    except (UnicodeDecodeError, AttributeError) as e:
+        print(f"Skipping URL due to decoding error: {url}")
+        
+def update_most_common_words(url, content, top_n=50):
+    nltk.download('stopwords')
+    stop_words = set(nltk.stopwords.words("english"))
+    global word_counts
+
+    try:
+        text = BeautifulSoup(content, "html.parser").get_text().lower()
+        words = re.findall(r'\w+', text)
+        # filtered_words = [word for word in words if word not in stop_words]
+        word_counts.update(words)
+    except (UnicodeDecodeError, AttributeError) as e:
+        print(f"Skipping URL due to decoding error: {url}")
+            
+def update_subdomain_counts(url, domain="ics.uci.edu"):
+    global subdomain_counts
+
+    parsed = urlparse(url)
+    if domain in parsed.netloc:
+        subdomain = parsed.netloc
+        subdomain_counts[subdomain] += 1
+
+        
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -20,9 +75,13 @@ def extract_next_links(url, resp):
     if resp.status == 200:
         try:
             content = BeautifulSoup(resp.raw_response.content)
+            update_unique_pages(url)
+            update_longest_page(url, content)
+            update_most_common_words(url, content)
+            update_subdomain_counts(url)
             links = [link.get('href') for link in content.find_all('a') if link.get('href') is not None and is_valid(link.get('href'))]
         except Exception as e:
-            print ("An exception found: {e}")
+            print (f"An exception found: {e}")
     return links
 
 def is_valid(url):
@@ -37,6 +96,10 @@ def is_valid(url):
         if not any(domain in parsed.netloc for domain in allowed_domains):
             return False
 
+        check_date = is_recent(url)
+        if check_date == False:
+            return False
+        
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -47,24 +110,24 @@ def is_valid(url):
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
         
-        
-        pattern = r"(\d{4})[-/](\d{2})[-/](\d{2})"
-        match = re.search(pattern, url)
-
-        if match:
-            year, month, day = map(int, match.groups())
-            event_date = datetime(year, month, day)
-            today = datetime.today()
-            
-            # stop exploring upcoming events that happens two weeks later
-            if (event_date - today).days > 14:
-                return False
-
-            # stop exploring events passed more than two weeks
-            if (today - event_date).days > 14:
-                return False
 
     except TypeError:
         print ("TypeError for ", parsed)
         raise
-    
+
+def is_recent(url):
+    pattern = r"(\d{4})[-/](\d{2})[-/](\d{2})"
+    match = re.search(pattern, url)
+
+    if match:
+        year, month, day = map(int, match.groups())
+        event_date = datetime(year, month, day)
+        today = datetime.today()
+            
+        # stop exploring upcoming events that happens two weeks later
+        if (event_date - today).days > 7:
+            return False
+
+        # stop exploring events passed more than two weeks
+        if (today - event_date).days > 14:
+            return False
