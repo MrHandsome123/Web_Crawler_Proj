@@ -78,7 +78,7 @@ def update_most_common_words(url, content, top_n=50):
         # article_text = "\n".join(p.get_text(strip=True).lower() for p in paragraphs)
         text = content.get_text(strip=True)
         words = re.findall(r'\w+', text)
-        filtered_words = [word for word in words if word not in stop_words]
+        filtered_words = [word for word in words if word not in stop_words and len(word) > 1]
         word_counts.update(filtered_words)
         # print(f"The words common:")
         # for word, count in word_counts.items():
