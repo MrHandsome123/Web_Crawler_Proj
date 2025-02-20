@@ -17,25 +17,15 @@ word_counts=Counter()
 subdomain_counts=defaultdict(int)
 
 def get_unique_pages():
-    # print(f"Number of unique pages: {len(unique_pages)}")
     return unique_pages
 
 def get_longest_page():
-    # print(f"Longest page: {longest_page[0]} with {longest_page_number} words")
     return longest_page, longest_page_number
 
 def get_word_counts():
-    # print("Most common words:")
-    # top_50_words = word_counts.most_common(50)
-    # for word, count in top_50_words:
-    #     print(f"{word}: {count}")
     return word_counts
     
 def get_subdomain_counts():
-    # print(f"Subdomain counts: {len(subdomain_counts)}")
-    # sorted_subdomain_counts=sorted(subdomain_counts.items())
-    # for subdomain, count in sorted_subdomain_counts:
-    #     print(f"{subdomain}: {count}")
     return subdomain_counts
 
 def update_unique_pages(url):
